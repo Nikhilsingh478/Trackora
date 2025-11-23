@@ -1,0 +1,44 @@
+at div
+    at div
+    at CardContent (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/components/ui/card.tsx:83:24)
+    at div
+    at Card (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/components/ui/card.tsx:23:17)
+    at div
+    at div
+    at MonthlyAnalysis
+    at ErrorBoundary (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/components/ErrorBoundary.tsx:59:9)
+    at div
+    at MotionDOMComponent (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/node_modules/.vite/deps/motion_react.js?v=a5082dc9:5395:40)
+    at PresenceChild (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/node_modules/.vite/deps/motion_react.js?v=a5082dc9:4371:24)
+    at AnimatePresence (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/node_modules/.vite/deps/motion_react.js?v=a5082dc9:4450:26)
+    at main
+    at div
+    at div
+    at DataProvider (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/contexts/DataContext.tsx:51:32)
+    at ThemeProvider (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/contexts/ThemeContext.tsx:24:33)
+    at App (https://02c323a6-902e-430e-8639-ab0687c70dd2-00-2n9jsrktz6aod.sisko.replit.dev/src/App.tsx:36:43)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+overrideMethod @ installHook.js:1Understand this error
+installHook.js:1 ErrorBoundary caught an error: Error: [DecimalError] Invalid argument: NaN
+    at new Decimal2 (recharts.js?v=35b3c151:14307:15)
+    at getTickValuesFixedDomainFn (recharts.js?v=35b3c151:14753:28)
+    at recharts.js?v=35b3c151:14515:22
+    at getTicksOfScale2 (recharts.js?v=35b3c151:15891:23)
+    at recharts.js?v=35b3c151:25331:18
+    at Array.reduce (<anonymous>)
+    at formatAxisMap4 (recharts.js?v=35b3c151:25291:14)
+    at recharts.js?v=35b3c151:30790:22
+    at Array.forEach (<anonymous>)
+    at updateStateOfAxisMapsOffsetAndStackGroups2 (recharts.js?v=35b3c151:30789:26) Object Error Component Stack
+    at ErrorBoundary (ErrorBoundary.tsx:15:5)
+    at div (<anonymous>)
+    at MotionDOMComponent (motion_react.js?v=a5082dc9:5395:40)
+    at PresenceChild (motion_react.js?v=a5082dc9:4371:24)
+    at AnimatePresence (motion_react.js?v=a5082dc9:4450:26)
+    at main (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at DataProvider (DataContext.tsx:83:32)
+    at ThemeProvider (ThemeContext.tsx:12:33)
+    at App (App.tsx:15:41)

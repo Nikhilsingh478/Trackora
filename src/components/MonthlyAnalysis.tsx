@@ -1,8 +1,7 @@
 import { useData } from '../contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Award, AlertCircle, Moon, CheckCircle2 } from 'lucide-react';
-import { safeNumber, safePercentage, safeAverage, isValidNumber } from '../utils/safeNumber';
+import { Award, AlertCircle, Moon, CheckCircle2, TrendingUp } from 'lucide-react';
+import { safeNumber, safePercentage, safeAverage } from '../utils/safeNumber';
 
 export function MonthlyAnalysis() {
   try {
@@ -57,100 +56,89 @@ export function MonthlyAnalysis() {
       );
     }
 
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  // Protocol completion stats - ensure all values are valid numbers
-  const protocolStats = protocols.map(protocol => {
-    const completed = days.filter(day => getCellValue(day, protocol.id)).length;
-    const percentage = safePercentage(completed, daysInMonth);
-    
-    return {
-      name: (protocol.label || 'Unnamed').substring(0, 30), // Truncate long names
-      completed: safeNumber(completed, 0),
-      percentage: safeNumber(percentage, 0),
-      color: protocol.color || '#06b6d4'
-    };
-  }).filter(stat => 
-    // Only include stats with valid numbers
-    isValidNumber(stat.completed) && isValidNumber(stat.percentage)
-  );
+    // Protocol completion stats
+    const protocolStats = protocols.map(protocol => {
+      const completed = days.filter(day => getCellValue(day, protocol.id)).length;
+      const percentage = safePercentage(completed, daysInMonth);
+      
+      return {
+        id: protocol.id,
+        name: (protocol.label || 'Unnamed').substring(0, 30),
+        completed: safeNumber(completed, 0),
+        percentage: Math.max(0, Math.min(100, safeNumber(percentage, 0))),
+        color: protocol.color || '#06b6d4'
+      };
+    });
 
-  // Overall completion
-  const totalPossible = safeNumber(protocols.length * daysInMonth, 0);
-  const totalCompleted = protocolStats.reduce((sum, p) => sum + safeNumber(p.completed, 0), 0);
-  const overallCompletion = safePercentage(totalCompleted, totalPossible);
+    // Overall completion
+    const totalPossible = safeNumber(protocols.length * daysInMonth, 0);
+    const totalCompleted = safeNumber(protocolStats.reduce((sum, p) => sum + p.completed, 0), 0);
+    const overallCompletion = Math.max(0, Math.min(100, safePercentage(totalCompleted, totalPossible)));
 
-  // Sleep stats
-  const sleepDays = days.filter(day => {
-    const hours = getSleepHours(day);
-    return hours !== undefined && hours !== null && hours !== '';
-  });
-  const sleepValues = sleepDays.map(day => {
-    const hours = getSleepHours(day);
-    return safeNumber(hours, 0);
-  });
-  const avgSleep = safeAverage(sleepValues).toFixed(1);
+    // Sleep stats
+    const sleepDays = days.filter(day => {
+      const hours = getSleepHours(day);
+      return hours !== undefined && hours !== null && hours !== '';
+    });
+    const sleepValues = sleepDays.map(day => {
+      const hours = getSleepHours(day);
+      const num = parseFloat(hours as string) || 0;
+      return Math.max(0, num);
+    }).filter(v => v > 0);
+    const avgSleep = sleepValues.length > 0 
+      ? (sleepValues.reduce((a, b) => a + b, 0) / sleepValues.length).toFixed(1)
+      : '0';
 
-  // Best and worst protocol
-  const sortedProtocols = [...protocolStats].sort((a, b) => b.completed - a.completed);
-  const bestProtocol = sortedProtocols.length > 0 ? sortedProtocols[0] : { name: '-', percentage: 0, completed: 0, color: '#ccc' };
-  const worstProtocol = sortedProtocols.length > 0 ? sortedProtocols[sortedProtocols.length - 1] : { name: '-', percentage: 0, completed: 0, color: '#ccc' };
+    // Best and worst protocol
+    const sortedProtocols = [...protocolStats].sort((a, b) => b.percentage - a.percentage);
+    const bestProtocol = sortedProtocols.length > 0 ? sortedProtocols[0] : null;
+    const worstProtocol = sortedProtocols.length > 0 ? sortedProtocols[sortedProtocols.length - 1] : null;
 
-  // Best day (most protocols completed)
-  const dayCompletions = days.map(day => {
-    const completed = protocols.filter(p => getCellValue(day, p.id)).length;
-    return { day, completed };
-  });
-  const bestDay = dayCompletions.length > 0 
-    ? dayCompletions.reduce((best, current) => 
-        current.completed > best.completed ? current : best
-      , { day: 1, completed: 0 })
-    : { day: 1, completed: 0 };
+    // Best day
+    const dayCompletions = days.map(day => {
+      const completed = protocols.filter(p => getCellValue(day, p.id)).length;
+      return { day, completed };
+    });
+    const bestDay = dayCompletions.reduce((best, current) => 
+      current.completed > best.completed ? current : best
+    , { day: 1, completed: 0 });
 
-  const stats = [
-    {
-      title: 'Overall Completion',
-      value: `${safeNumber(overallCompletion, 0)}%`,
-      icon: CheckCircle2,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-500/10'
-    },
-    {
-      title: 'Best Protocol',
-      value: bestProtocol.name || '-',
-      subtitle: `${safeNumber(bestProtocol.percentage, 0)}%`,
-      icon: Award,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10'
-    },
-    {
-      title: 'Avg Sleep',
-      value: `${avgSleep}h`,
-      subtitle: `${sleepDays.length || 0} days tracked`,
-      icon: Moon,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10'
-    },
-    {
-      title: 'Most Missed',
-      value: worstProtocol.name || '-',
-      subtitle: `${safeNumber(worstProtocol.percentage, 0)}%`,
-      icon: AlertCircle,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10'
-    }
-  ];
-
-  // Pie chart data for completion distribution - ensure valid numbers
-  const completedValue = Math.max(0, safeNumber(totalCompleted, 0));
-  const missedValue = Math.max(0, safeNumber(totalPossible - totalCompleted, 0));
-  
-  // Only create pie data if we have valid positive numbers
-  const pieData = (completedValue > 0 || missedValue > 0) ? [
-    { name: 'Completed', value: completedValue, color: '#06b6d4' },
-    { name: 'Missed', value: missedValue, color: '#374151' }
-  ].filter(item => isValidNumber(item.value) && item.value > 0) : [];
+    const stats = [
+      {
+        title: 'Overall Completion',
+        value: `${overallCompletion}%`,
+        icon: CheckCircle2,
+        color: 'text-cyan-500',
+        bgColor: 'bg-cyan-500/10'
+      },
+      {
+        title: 'Best Protocol',
+        value: bestProtocol?.name || '-',
+        subtitle: `${bestProtocol?.percentage || 0}%`,
+        icon: Award,
+        color: 'text-green-500',
+        bgColor: 'bg-green-500/10'
+      },
+      {
+        title: 'Avg Sleep',
+        value: `${avgSleep}h`,
+        subtitle: `${sleepDays.length} days tracked`,
+        icon: Moon,
+        color: 'text-purple-500',
+        bgColor: 'bg-purple-500/10'
+      },
+      {
+        title: 'Most Missed',
+        value: worstProtocol?.name || '-',
+        subtitle: `${worstProtocol?.percentage || 0}%`,
+        icon: AlertCircle,
+        color: 'text-orange-500',
+        bgColor: 'bg-orange-500/10'
+      }
+    ];
 
     return (
       <div className="p-4 lg:p-8">
@@ -161,163 +149,155 @@ export function MonthlyAnalysis() {
           </p>
         </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl mt-2 truncate">{stat.value}</p>
-                    {stat.subtitle && (
-                      <p className="text-sm text-muted-foreground mt-1">{stat.subtitle}</p>
-                    )}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-2xl mt-2 truncate font-semibold">{stat.value}</p>
+                      {stat.subtitle && (
+                        <p className="text-sm text-muted-foreground mt-1">{stat.subtitle}</p>
+                      )}
+                    </div>
+                    <div className={`p-3 rounded-xl ${stat.bgColor} flex-shrink-0`}>
+                      <Icon className={`w-6 h-6 ${stat.color}`} />
+                    </div>
                   </div>
-                  <div className={`p-3 rounded-xl ${stat.bgColor} flex-shrink-0`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="hover:shadow-lg transition-shadow">
+        {/* Protocol Completion Rates */}
+        <Card className="hover:shadow-lg transition-shadow mb-6">
           <CardHeader>
-            <CardTitle>Protocol Completion Rates</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Protocol Completion Rates
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {protocolStats.length > 0 ? (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={protocolStats} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
-                    <XAxis 
-                      type="number" 
-                      stroke="currentColor" 
-                      opacity={0.5} 
-                      domain={[0, 100]}
-                      allowDataOverflow={false}
-                    />
-                    <YAxis 
-                      type="category" 
-                      dataKey="name" 
-                      stroke="currentColor" 
-                      opacity={0.5} 
-                      width={100} 
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--card)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px'
-                      }}
-                      formatter={(value: any) => {
-                        const num = safeNumber(value, 0);
-                        return [`${num}%`, 'Completion'];
-                      }}
-                    />
-                    <Bar dataKey="percentage" radius={[0, 8, 8, 0]}>
-                      {protocolStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-muted-foreground">
-                No protocols to display. Add some protocols to see completion rates.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Completion Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pieData.length > 0 ? (
-              <>
-                <div className="h-80 flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        isAnimationActive={false}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px'
-                        }}
-                        formatter={(value: any) => {
-                          const num = safeNumber(value, 0);
-                          return [num, ''];
+            <div className="space-y-6">
+              {protocolStats.length > 0 ? (
+                protocolStats.map((protocol) => (
+                  <div key={protocol.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{protocol.name}</span>
+                      <span className="text-sm font-semibold text-foreground">{protocol.percentage}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${protocol.percentage}%`,
+                          backgroundColor: protocol.color
                         }}
                       />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex justify-center gap-6 mt-4">
-                  {pieData.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-sm text-muted-foreground">
-                        {item.name}: {safeNumber(item.value, 0)}
-                      </span>
                     </div>
-                  ))}
+                    <div className="text-xs text-muted-foreground">
+                      {protocol.completed} of {daysInMonth} days completed
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  No protocols to display.
                 </div>
-              </>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-muted-foreground">
-                No data to display. Add protocols and track your progress.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Best Day Highlight */}
-      {bestDay.completed > 0 && (
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Best Day of the Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-yellow-500/10 rounded-2xl">
-                <Award className="w-12 h-12 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-2xl">Day {bestDay.day}</p>
-                <p className="text-muted-foreground">
-                  {bestDay.completed} out of {protocols.length} protocols completed
-                </p>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Completion Summary */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Completion Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Total Completion</span>
+                    <span className="text-lg font-semibold">{totalCompleted}/{totalPossible}</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                      style={{ width: `${overallCompletion}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">{overallCompletion}% of all tasks completed</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Best Day Highlight */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-yellow-500" />
+                Best Day of the Month
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {bestDay.completed > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold">Day {bestDay.day}</p>
+                  <p className="text-muted-foreground">
+                    {bestDay.completed} out of {protocols.length} protocols completed
+                  </p>
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground">
+                      That's a productive day! Keep up the momentum.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground py-8 text-center">
+                  Complete some protocols to see your best day!
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Protocol Rankings */}
+        {protocolStats.length > 0 && (
+          <Card className="hover:shadow-lg transition-shadow mt-6">
+            <CardHeader>
+              <CardTitle>Protocol Rankings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {sortedProtocols.map((protocol, index) => (
+                  <div key={protocol.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{protocol.name}</p>
+                        <p className="text-xs text-muted-foreground">{protocol.completed} days completed</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm">{protocol.percentage}%</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   } catch (error) {
