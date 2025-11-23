@@ -1,0 +1,51 @@
+see check i got this error check because for monthly this shit is still not working that is whyi told to check proeprly check from scratch and if still the problem is not solved then simply do onething make a whole new component and do it by yourself instead of correcting that one okay this is what i got on console Debug utilities loaded. Available functions:
+index-BxNFameb.js:295   - clearTrackerData(): Clear tracker data only
+index-BxNFameb.js:295   - clearAllAppData(): Clear all app data including theme
+installHook.js:1 MonthlyAnalysis error: Error: Minified React error #321; visit https://reactjs.org/docs/error-decoder.html?invariant=321 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Object.Jt (index-BxNFameb.js:38:17118)
+    at ZF.$e.useContext (index-BxNFameb.js:9:5827)
+    at js (index-BxNFameb.js:48:81613)
+    at yae (index-BxNFameb.js:289:37870)
+    at se (index-BxNFameb.js:34:444)
+    at pe (index-BxNFameb.js:37:411)
+    at wa (index-BxNFameb.js:38:28321)
+    at xO (index-BxNFameb.js:40:39325)
+    at nf (index-BxNFameb.js:40:40106)
+    at gO (index-BxNFameb.js:40:35089)
+overrideMethod @ installHook.js:1Understand this error
+installHook.js:1 MonthlyAnalysis error: Error: Minified React error #321; visit https://reactjs.org/docs/error-decoder.html?invariant=321 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Object.Jt (index-BxNFameb.js:38:17118)
+    at ZF.$e.useContext (index-BxNFameb.js:9:5827)
+    at js (index-BxNFameb.js:48:81613)
+    at yae (index-BxNFameb.js:289:37870)
+    at se (index-BxNFameb.js:34:444)
+    at pe (index-BxNFameb.js:37:411)
+    at wa (index-BxNFameb.js:38:28321)
+    at xO (index-BxNFameb.js:40:39325)
+    at nf (index-BxNFameb.js:40:40106)
+    at ym (index-BxNFameb.js:40:36377) installHook.js:1 Error: [DecimalError] Invalid argument: NaN
+    at new i (index-BxNFameb.js:236:64347)
+    at rZ (index-BxNFameb.js:239:2798)
+    at index-BxNFameb.js:237:1944
+    at _$ (index-BxNFameb.js:241:10991)
+    at index-BxNFameb.js:284:30846
+    at Array.reduce (<anonymous>)
+    at iL (index-BxNFameb.js:284:29988)
+    at index-BxNFameb.js:289:10996
+    at Array.forEach (<anonymous>)
+    at y (index-BxNFameb.js:289:10971)
+
+installHook.js:1 ErrorBoundary caught an error: Error: [DecimalError] Invalid argument: NaN
+    at new i (index-BxNFameb.js:236:64347)
+    at rZ (index-BxNFameb.js:239:2798)
+    at index-BxNFameb.js:237:1944
+    at _$ (index-BxNFameb.js:241:10991)
+    at index-BxNFameb.js:284:30846
+    at Array.reduce (<anonymous>)
+    at iL (index-BxNFameb.js:284:29988)
+    at index-BxNFameb.js:289:10996
+    at Array.forEach (<anonymous>)
+    at y (index-BxNFameb.js:289:10971)
+ 
+Object
+﻿
