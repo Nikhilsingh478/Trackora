@@ -44,8 +44,8 @@ export default function App() {
   return (
     <ThemeProvider>
       <DataProvider>
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 lg:p-8">
-          <div className="w-full max-w-7xl bg-background/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh]">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 lg:p-6">
+          <div className="w-full max-w-[1600px] bg-background/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh]">
             <TopNav currentView={currentView} onViewChange={setCurrentView} />
             <main className="flex-1 overflow-auto">
               {renderView()}

@@ -7,7 +7,8 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { useState, useRef, useEffect } from 'react';
 import { SleepTracker } from './SleepTracker';
-import { toast } from 'sonner@2.0.3';
+import { DisciplineMeter } from './DisciplineMeter';
+import { toast } from 'sonner';
 
 export function Dashboard() {
   const {
@@ -155,12 +156,37 @@ export function Dashboard() {
     toast.success(`${label} removed`);
   };
 
+  // Calculate Discipline Score
+  const disciplineScore = (() => {
+    if (protocols.length === 0) return 0;
+    
+    let totalPossible = 0;
+    let completed = 0;
+
+    // Based on user requirement: 
+    // Score = (Total Completed Instances / Total Possible Instances in Month) * 100
+    // Total Possible = Num Protocols * Days in Month
+    
+    totalPossible = protocols.length * daysInMonth;
+
+    // Count actual completions
+    for (let d = 1; d <= daysInMonth; d++) {
+       protocols.forEach(p => {
+          if (getCellValue(d, p.id)) completed++;
+       });
+    }
+    
+    return totalPossible > 0 ? (completed / totalPossible) * 100 : 0;
+  })();
+
   return (
-    <div className="p-4 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
         <h2 className="text-3xl">Dashboard</h2>
         <p className="text-muted-foreground mt-1">Track your daily progress</p>
       </div>
+
+      <DisciplineMeter score={disciplineScore} />
 
       {/* Protocol Grid */}
       <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden mb-8">
@@ -168,8 +194,8 @@ export function Dashboard() {
           <div className="inline-block min-w-full">
             {/* Header Row - Sticky Top */}
             <div className="flex sticky top-0 z-20 bg-card border-b border-border backdrop-blur-sm bg-opacity-95">
-              <div className="sticky left-0 z-30 w-56 p-4 border-r border-border bg-muted/30 backdrop-blur-sm">
-                <span className="text-sm text-muted-foreground">Protocol</span>
+              <div className="sticky left-0 z-30 w-[160px] min-w-[160px] max-w-[160px] sm:w-[220px] sm:min-w-[220px] sm:max-w-[220px] p-2 border-r border-border bg-muted/30 backdrop-blur-sm flex-shrink-0 flex-grow-0 overflow-hidden">
+                <span className="text-sm text-muted-foreground truncate block w-full" title="Protocol">Protocol</span>
               </div>
               <div className="flex">
                 {days.map(day => {
@@ -186,7 +212,7 @@ export function Dashboard() {
                   );
                 })}
               </div>
-              <div className="w-20 p-4 flex-shrink-0 bg-muted/30">
+              <div className="w-20 p-2 flex-shrink-0 bg-muted/30">
                 <span className="text-sm text-muted-foreground">Total</span>
               </div>
             </div>
@@ -203,32 +229,40 @@ export function Dashboard() {
                   role="row"
                 >
                   {/* Sticky Protocol Label */}
-                  <div className="sticky left-0 z-10 w-56 p-4 border-r border-border bg-card backdrop-blur-sm flex items-center justify-between group-hover:bg-muted/10 transition-colors">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: protocol.color }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className="truncate text-sm block">{protocol.label}</span>
-                        <span className="text-xs text-muted-foreground">{completionPercentage}%</span>
+                  <div className="sticky left-0 z-10 w-[160px] min-w-[160px] max-w-[160px] sm:w-[220px] sm:min-w-[220px] sm:max-w-[220px] border-r border-border bg-card backdrop-blur-sm flex-shrink-0 flex-grow-0 group-hover:bg-muted/10 transition-colors overflow-hidden">
+                    <div className="flex flex-col justify-center h-full p-2 w-full gap-1 overflow-hidden">
+                      
+                      {/* Label Container */}
+                      <div className="flex items-center gap-2 w-full overflow-hidden" title={protocol.label}>
+                        <div
+                          className="w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: protocol.color }}
+                        />
+                        <span className="truncate text-xs sm:text-sm font-medium block min-w-0 flex-1">
+                          {protocol.label}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEditDialog(protocol.id, protocol.label, protocol.color)}
-                        className="p-1 hover:bg-muted rounded transition-colors"
-                        title="Edit protocol"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleRemoveProtocol(protocol.id, protocol.label)}
-                        className="p-1 hover:bg-destructive/20 rounded transition-colors"
-                        title="Delete protocol"
-                      >
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </button>
+                      
+                      <div className="flex items-center justify-between mt-1 w-full relative">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">{completionPercentage}%</span>
+                        {/* Action Buttons */}
+                        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditDialog(protocol.id, protocol.label, protocol.color)}
+                            className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveProtocol(protocol.id, protocol.label)}
+                            className="p-1 hover:bg-destructive/10 rounded transition-colors text-muted-foreground hover:text-destructive"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -274,7 +308,7 @@ export function Dashboard() {
                   </div>
 
                   {/* Total Column */}
-                  <div className="w-20 p-4 flex items-center justify-center flex-shrink-0 bg-muted/30">
+                  <div className="w-20 p-2 flex items-center justify-center flex-shrink-0 bg-muted/30">
                     <span className="text-sm font-medium">{completionCount}</span>
                   </div>
                 </div>
@@ -285,10 +319,12 @@ export function Dashboard() {
             <div className="flex border-b border-border">
               <button
                 onClick={() => setIsAddOpen(true)}
-                className="sticky left-0 z-10 w-56 flex items-center gap-2 p-4 text-muted-foreground hover:text-accent hover:bg-accent/5 transition-colors bg-card"
+                className="sticky left-0 z-10 w-[160px] min-w-[160px] max-w-[160px] sm:w-[220px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0 flex-grow-0 block p-2 text-left text-muted-foreground hover:text-accent hover:bg-accent/5 transition-colors bg-card overflow-hidden"
               >
-                <Plus className="w-5 h-5" />
-                <span className="text-sm">Add Protocol</span>
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <Plus className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm truncate min-w-0 flex-1">Add Protocol</span>
+                </div>
               </button>
             </div>
 
@@ -317,12 +353,13 @@ export function Dashboard() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label htmlFor="protocol-label">Protocol Name</Label>
+              <Label htmlFor="protocol-label">Protocol Name <span className="text-xs text-muted-foreground ml-1">(Max 20 chars)</span></Label>
               <Input
                 id="protocol-label"
                 value={newProtocolLabel}
                 onChange={(e) => setNewProtocolLabel(e.target.value)}
                 placeholder="e.g., Morning Exercise"
+                maxLength={20}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddProtocol()}
                 autoFocus
               />
@@ -360,11 +397,12 @@ export function Dashboard() {
           {editingProtocol && (
             <div className="space-y-4 mt-4">
               <div>
-                <Label htmlFor="edit-protocol-label">Protocol Name</Label>
+                <Label htmlFor="edit-protocol-label">Protocol Name <span className="text-xs text-muted-foreground ml-1">(Max 20 chars)</span></Label>
                 <Input
                   id="edit-protocol-label"
                   value={editingProtocol.label}
                   onChange={(e) => setEditingProtocol({ ...editingProtocol, label: e.target.value })}
+                  maxLength={20}
                   onKeyDown={(e) => e.key === 'Enter' && handleEditProtocol()}
                   autoFocus
                 />

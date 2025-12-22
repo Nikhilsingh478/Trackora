@@ -38,7 +38,7 @@ export function TopNav({ currentView, onViewChange }: TopNavProps) {
 
   return (
     <nav className="bg-card border-b border-border no-print sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo & Title */}
           <div className="flex items-center gap-4">

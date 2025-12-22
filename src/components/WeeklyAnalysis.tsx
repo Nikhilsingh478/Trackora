@@ -61,38 +61,72 @@ export function WeeklyAnalysis() {
     today.getMonth() === currentMonth.getMonth() &&
     today.getFullYear() === currentMonth.getFullYear();
 
-  // Get last 7 days
-  const last7Days = isCurrentMonth 
-    ? Array.from({ length: Math.min(7, currentDay) }, (_, i) => currentDay - i).reverse()
-    : [];
+  // Get current week (Monday -> Sunday)
+  const getWeekDates = () => {
+    const d = new Date(today);
+    const day = d.getDay(); // 0 is Sunday
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(new Date(d).setDate(diff));
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const nextDate = new Date(monday);
+      nextDate.setDate(monday.getDate() + i);
+      days.push(nextDate);
+    }
+    return days;
+  };
 
-  // Calculate completion rate per day - ensure valid numbers
-  const dailyCompletion = last7Days.map(day => {
-    const completed = protocols.filter(p => getCellValue(day, p.id)).length;
-    const total = protocols.length;
-    const percentage = safePercentage(completed, total);
+  const weekDates = getWeekDates();
+
+  // Calculate completion rate per day (Mon-Sun)
+  const dailyCompletion = weekDates.map(date => {
+    const isInMonth = date.getMonth() === currentMonth.getMonth() && 
+                      date.getFullYear() === currentMonth.getFullYear();
+    
+    let percentage = 0;
+    if (isInMonth) {
+       const day = date.getDate();
+       const completed = protocols.filter(p => getCellValue(day, p.id)).length;
+       const total = protocols.length;
+       percentage = safePercentage(completed, total);
+    }
 
     return {
-      day: day.toString(),
+      day: date.getDate().toString(),
       completion: safeNumber(percentage, 0),
-      date: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day).toLocaleDateString('en-US', { weekday: 'short' })
+      date: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      originalDate: date
     };
-  }).filter(d => isValidNumber(d.completion));
+  });
 
-  // Sleep data for last 7 days - filter out invalid values
-  const sleepData = last7Days.map(day => {
-    const hours = getSleepHours(day);
-    const parsed = safeNumber(hours, 0);
+  // Sleep data (Mon-Sun)
+  const sleepData = weekDates.map(date => {
+    const isInMonth = date.getMonth() === currentMonth.getMonth() && 
+                      date.getFullYear() === currentMonth.getFullYear();
+    
+    let hours = 0;
+    if (isInMonth) {
+        hours = safeNumber(getSleepHours(date.getDate()), 0);
+    }
+
     return {
-      day: day.toString(),
-      hours: parsed,
-      date: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day).toLocaleDateString('en-US', { weekday: 'short' })
+      day: date.getDate().toString(),
+      hours: hours,
+      date: date.toLocaleDateString('en-US', { weekday: 'short' })
     };
-  }).filter(d => isValidNumber(d.hours));
+  });
 
   // Calculate metrics
+  // Filter out zero values correctly for averages if we want "average of active days"
+  // But strict Mon-Sun might have future days with 0. 
+  // Should average include 0? Usually "Average Completion" implies over the period generated.
+  // Previous logic used `last7Days` which excluded future days.
+  // I should probably filter out future dates for average calculation to be fair.
+  
+  const pastDates = dailyCompletion.filter(d => d.originalDate <= today);
   const avgCompletion = safeNumber(
-    Math.round(safeAverage(dailyCompletion.map(d => d.completion))),
+    Math.round(safeAverage(pastDates.map(d => d.completion))),
     0
   );
 
@@ -101,11 +135,27 @@ export function WeeklyAnalysis() {
 
   const streak = (() => {
     let count = 0;
-    for (let i = last7Days.length - 1; i >= 0; i--) {
-      const day = last7Days[i];
-      const completed = protocols.filter(p => getCellValue(day, p.id)).length;
-      if (completed > 0) count++;
-      else break;
+    // Check backwards from today for up to 30 days within the current month
+    const checkDate = new Date(today);
+    
+    for(let i=0; i<30; i++) {
+        const isInMonth = checkDate.getMonth() === currentMonth.getMonth() && 
+                          checkDate.getFullYear() === currentMonth.getFullYear();
+        if (!isInMonth) break;
+        
+        const day = checkDate.getDate();
+        const completed = protocols.filter(p => getCellValue(day, p.id)).length;
+        
+        if (completed > 0) {
+            count++;
+        } else if (i > 0) {
+            // Should break if we miss a day (except possibly today if not yet done)
+            // If i==0 (today) and incomplete, we don't increment, but we check yesterday.
+            // If i>0 (yesterday or before) and incomplete, streak ends.
+            break;
+        }
+        
+        checkDate.setDate(checkDate.getDate() - 1);
     }
     return count;
   })();
@@ -113,7 +163,7 @@ export function WeeklyAnalysis() {
   const bestDay = dailyCompletion.length > 0
     ? dailyCompletion.reduce((best, current) => 
         current.completion > best.completion ? current : best
-      , { day: '-', completion: 0, date: '' })
+      , { day: '-', completion: 0, date: '-' })
     : { day: '-', completion: 0, date: '-' };
 
   const stats = [

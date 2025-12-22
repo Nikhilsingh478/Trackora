@@ -1,6 +1,7 @@
 import { useData } from '../contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Award, AlertCircle, Moon, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Button } from './ui/button';
+import { Award, AlertCircle, Moon, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { safeNumber, safePercentage, safeAverage } from '../utils/safeNumber';
 
 export function MonthlyAnalysis() {
@@ -142,11 +143,17 @@ export function MonthlyAnalysis() {
 
     return (
       <div className="p-4 lg:p-8">
-        <div className="mb-6">
-          <h2 className="text-3xl">Monthly Analysis</h2>
-          <p className="text-muted-foreground mt-1">
-            {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} overview
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-3xl">Monthly Analysis</h2>
+            <p className="text-muted-foreground mt-1">
+              {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} overview
+            </p>
+          </div>
+          <Button onClick={() => window.print()} variant="outline" className="gap-2 no-print">
+            <Download className="w-4 h-4" />
+            Export Report
+          </Button>
         </div>
 
         {/* Stats Grid */}
@@ -215,9 +222,9 @@ export function MonthlyAnalysis() {
         </Card>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4 break-inside-avoid">
           {/* Completion Summary */}
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-shadow break-inside-avoid">
             <CardHeader>
               <CardTitle>Completion Summary</CardTitle>
             </CardHeader>
@@ -230,7 +237,7 @@ export function MonthlyAnalysis() {
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300 print:bg-slate-800 print:bg-none"
                       style={{ width: `${overallCompletion}%` }}
                     />
                   </div>
@@ -241,7 +248,7 @@ export function MonthlyAnalysis() {
           </Card>
 
           {/* Best Day Highlight */}
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-shadow break-inside-avoid">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-yellow-500" />
