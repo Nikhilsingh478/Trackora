@@ -1,4 +1,5 @@
 import { useData } from '../contexts/DataContext';
+import { trackEvent } from '../utils/analytics';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Award, AlertCircle, Moon, CheckCircle2, TrendingUp, Download } from 'lucide-react';
@@ -150,7 +151,14 @@ export function MonthlyAnalysis() {
               {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} overview
             </p>
           </div>
-          <Button onClick={() => window.print()} variant="outline" className="gap-2 no-print">
+          <Button 
+            onClick={() => {
+              trackEvent('export_clicked', { type: 'monthly_report' });
+              window.print();
+            }} 
+            variant="outline" 
+            className="gap-2 no-print"
+          >
             <Download className="w-4 h-4" />
             Export Report
           </Button>

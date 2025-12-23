@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider } from './contexts/DataContext';
+import { initGA, trackEvent } from './utils/analytics';
 import { TopNav } from './components/TopNav';
 import { Dashboard } from './components/Dashboard';
 import { WeeklyAnalysis } from './components/WeeklyAnalysis';
@@ -13,6 +14,13 @@ import './utils/clearData'; // Load debug utilities
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+
+  useEffect(() => {
+    initGA();
+    trackEvent('app_loaded', {
+      timestamp: new Date().toISOString()
+    });
+  }, []);
 
   const renderView = () => {
     const views = {

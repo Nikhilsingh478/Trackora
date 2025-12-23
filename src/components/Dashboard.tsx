@@ -1,4 +1,5 @@
 import { Plus, Edit2, Trash2, StickyNote } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 import { useData } from '../contexts/DataContext';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -45,6 +46,10 @@ export function Dashboard() {
   const handleAddProtocol = () => {
     if (newProtocolLabel.trim()) {
       addProtocol(newProtocolLabel.trim(), newProtocolColor);
+      trackEvent('protocol_added', {
+        label: newProtocolLabel.trim(),
+        color: newProtocolColor
+      });
       setNewProtocolLabel('');
       setNewProtocolColor('#06b6d4');
       setIsAddOpen(false);
@@ -105,6 +110,14 @@ export function Dashboard() {
     const newValue = !currentValue;
     setDragValue(newValue);
     setCellValue(day, protocolId, newValue);
+    
+    trackEvent('habit_marked', {
+      day,
+      protocolId,
+      completed: newValue,
+      method: 'click' 
+    });
+
     setLastClickedCell({ day, protocolId });
   };
 
@@ -178,6 +191,14 @@ export function Dashboard() {
     
     return totalPossible > 0 ? (completed / totalPossible) * 100 : 0;
   })();
+
+  useEffect(() => {
+    // Debounce or just track? Requirement says "when discipline score changes"
+    // To avoid spam on initial load, we could check if > 0 or consistent
+    trackEvent('discipline_score_updated', {
+      score: Math.round(disciplineScore * 10) / 10 // Round to 1 decimal for analytics
+    });
+  }, [disciplineScore]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
