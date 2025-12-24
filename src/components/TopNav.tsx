@@ -19,6 +19,7 @@ export function TopNav({ currentView, onViewChange }: TopNavProps) {
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'weekly', label: 'Weekly' },
     { id: 'monthly', label: 'Monthly' },
+    { id: 'feedback', label: 'Feedback' },
     { id: 'settings', label: 'Settings' },
   ];
 

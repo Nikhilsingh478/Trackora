@@ -11,6 +11,19 @@ import { Settings } from './components/Settings';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './utils/clearData'; // Load debug utilities
+import './utils/clearData'; // Load debug utilities
+import { FeedbackPrompt } from './components/FeedbackPrompt';
+import { FeedbackView } from './components/FeedbackView';
+import emailjs from '@emailjs/browser';
+
+// Initialize EmailJS
+try {
+  emailjs.init({
+    publicKey: "NwMPwoO6mOuR1IeSD",
+  });
+} catch (e) {
+  console.error("Failed to initialize EmailJS:", e);
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -27,6 +40,7 @@ export default function App() {
       weekly: WeeklyAnalysis,
       monthly: MonthlyAnalysis,
       settings: Settings,
+      feedback: FeedbackView,
     };
 
     const Component = views[currentView as keyof typeof views] || Dashboard;
@@ -68,6 +82,7 @@ export default function App() {
               },
             }}
           />
+          <FeedbackPrompt onNavigateToFeedback={() => setCurrentView('feedback')} />
         </div>
       </DataProvider>
     </ThemeProvider>
